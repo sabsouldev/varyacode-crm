@@ -1,0 +1,51 @@
+framework:
+    workflows:
+        prospect:
+            type: state_machine
+            audit_trail:
+                enabled: '%kernel.debug%'
+            marking_store:
+                type: method
+                property: statut
+            supports:
+                - App\Entity\Prospect
+            initial_marking: a_contacter
+            places:
+                - a_contacter
+                - contacte
+                - en_attente
+                - rdv_fixe
+                - devis_envoye
+                - gagne
+                - perdu
+                - pas_maintenant
+            transitions:
+                # Appel ou échange en personne
+                premier_contact:
+                    from: [a_contacter, pas_maintenant]
+                    to: contacte
+                # Mail ou message envoyé, en attente de réponse
+                envoyer_message:
+                    from: [a_contacter, pas_maintenant, contacte]
+                    to: en_attente
+                relancer:
+                    from: [contacte, en_attente]
+                    to: en_attente
+                fixer_rdv:
+                    from: [contacte, en_attente]
+                    to: rdv_fixe
+                envoyer_devis:
+                    from: rdv_fixe
+                    to: devis_envoye
+                gagner:
+                    from: devis_envoye
+                    to: gagne
+                perdre:
+                    from: [contacte, en_attente, rdv_fixe, devis_envoye]
+                    to: perdu
+                mettre_en_pause:
+                    from: [contacte, en_attente, rdv_fixe, devis_envoye]
+                    to: pas_maintenant
+                reprendre:
+                    from: pas_maintenant
+                    to: a_contacter
